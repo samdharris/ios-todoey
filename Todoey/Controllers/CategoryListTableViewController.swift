@@ -7,21 +7,18 @@
 //
 
 import UIKit
+import RealmSwift
 
 class CategoryListTableViewController: UITableViewController {
 
-    var categories: [TodoCategory] = []
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    var categories: Results<TodoCategory>!
+    let realm = try! Realm()
 
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        do {
-            categories = try context.fetch(TodoCategory.fetchRequest())
-        } catch {
-            print(error)
-        }
+        categories = realm.objects(TodoCategory.self)
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -46,13 +43,13 @@ class CategoryListTableViewController: UITableViewController {
             alertAction in
             if let newCategory = mTextField.text, newCategory != "" {
                 
-                let category = TodoCategory(context: self.context)
+                let category = TodoCategory()
                 category.name = newCategory
-
                 do {
-                    try self.context.save()
-                    self.categories.append(category)
-                    self.tableView.reloadData()
+                    try self.realm.write {
+                        self.realm.add(category)
+                        self.tableView.reloadData()
+                    }
                 }  catch {
                     print(error)
                 }
